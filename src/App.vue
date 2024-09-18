@@ -5,9 +5,7 @@
             v-if="!preloader"
             :requests="requests"
             :initLocation="initLocation"
-            :locationsList="dropDownLists.locationList ?? []"
-            :requesTypeList="dropDownLists.requesTypeList ?? []"
-            :usecaseList="dropDownLists.usecaseList ?? []"
+            :filtersDropDownListsObject="dropDownLists"
             @createRequest="createRequest"
             @changeLocationFilter="loadLocations($event)"
             @editRequest="Edit($event)"
@@ -56,8 +54,6 @@ import {
    Dialog,
    RequestsTable,
    SelectedTemplate,
-   Toast,
-   ConfirmDialog
 } from 'requests_component_library';
 
 import {
@@ -78,8 +74,6 @@ export default {
       RequestsModal,
       Dialog,
       RequestsTable,
-      Toast,
-      ConfirmDialog,
       SelectedTemplate
    },
    data() {
@@ -107,9 +101,9 @@ export default {
          this.initialData = res;
          this.modalVisible = true;
       },
-      Delete(event) {
-         console.log('Delete: ', event);
-         this.confirm(event.id);
+      Delete(doc) {
+         console.log('Delete: ', doc);
+         this.requests = this.requests.filter((item) => item.id != doc.id);
       },
       confirm(docId) {
          this.$confirm.require({
@@ -196,9 +190,9 @@ export default {
             { name: 'CRM', value: 'crm_reques' }
          ];
          this.dropDownLists.requesTypeList = reqType;
-         this.dropDownLists.locationList = await loadLocations();
-         if (this.dropDownLists.locationList.length) {
-            this.initLocation = this.dropDownLists.locationList[0];
+         this.dropDownLists.locationsList = await loadLocations();
+         if (this.dropDownLists.locationsList.length) {
+            this.initLocation = this.dropDownLists.locationsList[0];
          }
 
          const bodyTempDataArr = await fetchAllTemplates();
@@ -254,13 +248,13 @@ export default {
       saveAsNewTemplate(event) {
          console.log(event);
          this.initialData.body_template = event;
-      }
+      },
    },
    async mounted() {
       await this.loadDropDawnData();
 
       const lastLocation = await getLastRequestsByLocation(
-         this.dropDownLists.locationList
+         this.dropDownLists.locationsList
       );
 
       const updateTable = [];
